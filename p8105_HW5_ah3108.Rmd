@@ -1,0 +1,10 @@
+---
+title: "p8105_HW5_ah3108"
+author: "Ava Hamilton"
+date: "11/4/2019"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
