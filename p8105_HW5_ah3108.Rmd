@@ -132,33 +132,18 @@ AVA INSERT RANGES ABOVE
 
 ```{r}
 
-
-sim_regression = function(n, beta0 = 2, beta1 = 3) {
-  
-  sim_data = tibble(
-    x = rnorm(n, mean = 1, sd = 1),
-    y = beta0 + beta1 * x + rnorm(n, 0, 1)
-  )
-  
-  ls_fit = lm(y ~ x, data = sim_data)
-  
-  tibble(
-    beta0_hat = coef(ls_fit)[1],
-    beta1_hat = coef(ls_fit)[2]
-  )
-}
-
+# function to simulate data wtih n = 30, beta0 = 2
 
 
 sim_data = function(beta1) {
   n = 30
   beta0 = 2
-  
+  # table of simulated data
   sim_data = tibble(
     x = rnorm(n, mean = 0, sd = 1),
     y = beta0 + beta1 * x + rnorm(n, 0, 50)
   )
-  
+  # run linear model and clean output
 ls_fit = lm(y ~ x, data = sim_data) %>% 
   broom::tidy() %>% 
   filter(term == "x") %>% 
@@ -169,38 +154,83 @@ ls_fit = lm(y ~ x, data = sim_data) %>%
 test = sim_data(0)
 
 
-output = rerun(100, sim_data(0)) %>%
+output1 = rerun(100, sim_data(0)) %>%
   bind_rows()
 
-
-map(sim_data)
-
-p3_output = vector("list", length = 500)
-
-for (i in 1:500) {
-  p3_output[[i]] = sim_data(0)
-}
-
-
-
+ 
+ sim_results_small =
+  tibble(beta1 = c(1, 2, 3, 4, 5, 6)) %>% 
+  mutate(
+    output_list = map(.x = beta1, ~rerun(10000, sim_data(beta1 = .x))),
+    output_df = map(output_list, bind_rows)
+  ) %>% 
+  select(-output_list) %>% 
+  unnest(output_df)
 
 
-# testing
-beta1 = 0 
-sim_data = tibble(
-  x = rnorm(n, mean = 0, sd = 1),
-  y = beta0 + beta1 * x + rnorm(n, 0, sqrt(50))
-)
+ sim_results_small_edit = sim_results_small %>% 
+   mutate(
+    reject_H0 = case_when(
+       p.value < 0.05 ~ 1,
+       p.value >=0.05 ~ 0
+     )
+   )
+ 
+ sim_results_small_edit = sim_results_small_edit %>% 
+   group_by(beta1) %>% 
+   mutate(
+   sum_reject_HO = sum(reject_H0),
+   prop_reject_H0 = sum_reject_HO/length(sum_reject_HO)
+   
+   ) %>% 
+   ungroup()
+ 
+ prob3_plot = sim_results_small_edit %>%
+   distinct(beta1, prop_reject_H0, sum_reject_HO)
+ 
+ 
+ 
+ 
+   ggplot(aes(x = ))
+ 
 
-ls_fit = lm(y ~ x, data = sim_data) %>% 
-  broom::tidy() %>% 
-  filter(term == "x") %>% 
-  select(estimate, p.value)
-  
+#### large 
+ sim_results_large =
+  tibble(beta1 = c(1, 2, 3, 4, 5, 6)) %>% 
+  mutate(
+    output_list = map(.x = beta1, ~rerun(10000, sim_data(beta1 = .x))),
+    output_df = map(output_list, bind_rows)
+  ) %>% 
+  select(-output_list) %>% 
+  unnest(output_df)
 
-broom::tidy(ls_fit)
 
-
+ sim_results_large_edit = sim_results_large %>% 
+   mutate(
+    reject_H0 = case_when(
+       p.value < 0.05 ~ 1,
+       p.value >=0.05 ~ 0
+     )
+   )
+ 
+ sim_results_large_edit = sim_results_large_edit %>% 
+   group_by(beta1) %>% 
+   mutate(
+   sum_reject_HO = sum(reject_H0),
+   prop_reject_H0 = sum_reject_HO/length(sum_reject_HO)
+   
+   ) %>% 
+   ungroup()
+ 
+ prob3_plot = sim_results_large_edit %>%
+   distinct(beta1, prop_reject_H0, sum_reject_HO)
+ 
+ prob3_plot %>% 
+ggplot(aes(x = prop_reject_H0, y = beta1)) 
+   
+   
+   
+   
 ```
 
 
