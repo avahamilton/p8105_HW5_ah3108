@@ -7,4 +7,48 @@ output: github_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+
 ```
+
+
+# Problem 1
+
+create a function that takes in a vector, replaces missing values,and returns the vector.
+
+```{r}
+set.seed(10)
+
+iris_with_missing = iris %>% 
+  map_df(~replace(.x, sample(1:150, 20), NA)) %>%
+  mutate(Species = as.character(Species))
+
+col1 = iris_with_missing[1]
+
+
+fill_NA = function(vec_to_fill) {
+  if (is.character(vec_to_fill)) {
+    vec_to_fill[is.na(vec_to_fill)] = "virginica"
+  } else if (is.numeric(vec_to_fill)) {
+    mean_col_val = mean(vec_to_fill,na.rm = T)
+    vec_to_fill[is.na(vec_to_fill)] = mean_col_val
+  }
+  else {
+    stop("x is not a numeric or character vector")
+  }
+  return(vec_to_fill)
+}
+
+
+```
+
+Use a mapping statement to replace missing values in the iris dataset.
+```{r}
+
+map(iris_with_missing, fill_NA)
+
+```
+
+
+# Problem 2
