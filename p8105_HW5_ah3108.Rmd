@@ -150,22 +150,56 @@ sim_regression = function(n, beta0 = 2, beta1 = 3) {
 
 
 
-sim_data = function(n = 30, beta0 = 2, beta1) {
+sim_data = function(beta1) {
+  n = 30
+  beta0 = 2
   
   sim_data = tibble(
     x = rnorm(n, mean = 0, sd = 1),
     y = beta0 + beta1 * x + rnorm(n, 0, 50)
   )
   
-  ls_fit = lm(y ~ x, data = sim_data)
+ls_fit = lm(y ~ x, data = sim_data) %>% 
+  broom::tidy() %>% 
+  filter(term == "x") %>% 
+  select(estimate, p.value)
   
-  tibble(
-    beta0_hat = coef(ls_fit)[1],
-    beta1_hat = coef(ls_fit)[2]
-  )
 }
 
-sim_data(, , 0)
+test = sim_data(0)
+
+
+output = rerun(100, sim_data(0)) %>%
+  bind_rows()
+
+
+map(sim_data)
+
+p3_output = vector("list", length = 500)
+
+for (i in 1:500) {
+  p3_output[[i]] = sim_data(0)
+}
+
+
+
+
+
+# testing
+beta1 = 0 
+sim_data = tibble(
+  x = rnorm(n, mean = 0, sd = 1),
+  y = beta0 + beta1 * x + rnorm(n, 0, sqrt(50))
+)
+
+ls_fit = lm(y ~ x, data = sim_data) %>% 
+  broom::tidy() %>% 
+  filter(term == "x") %>% 
+  select(estimate, p.value)
+  
+
+broom::tidy(ls_fit)
+
 
 ```
 
