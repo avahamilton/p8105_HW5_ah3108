@@ -118,10 +118,6 @@ long_df_p2 %>%
     y = "Observation")
 
 
-#long_df_p2s = long_df_p2 %>% 
- # filter(subject %in% c(2,20))
-
-
 ```
 
 The Control group had relatively stable observations over the 8 weeks. The obersvations for subjects in the Experiment group increased across time. By the 6th week almost all subjects in the experiment group had higher observations than those in the control group. By the end of the study period, in the 8th week, all subjects in the experiment group had higher values than the control group. 
@@ -144,58 +140,16 @@ sim_data = function(beta1) {
     y = beta0 + beta1 * x + rnorm(n, 0, 50)
   )
   # run linear model and clean output
-ls_fit = lm(y ~ x, data = sim_data) %>% 
-  broom::tidy() %>% 
-  filter(term == "x") %>% 
-  select(estimate, p.value)
+  ls_fit = lm(y ~ x, data = sim_data) %>% 
+    broom::tidy() %>% 
+    filter(term == "x") %>% 
+    select(estimate, p.value)
   
 }
 
-test = sim_data(0)
-
-
-output1 = rerun(100, sim_data(0)) %>%
-  bind_rows()
-
- 
- sim_results_small =
-  tibble(beta1 = c(1, 2, 3, 4, 5, 6)) %>% 
-  mutate(
-    output_list = map(.x = beta1, ~rerun(10000, sim_data(beta1 = .x))),
-    output_df = map(output_list, bind_rows)
-  ) %>% 
-  select(-output_list) %>% 
-  unnest(output_df)
-
-
- sim_results_small_edit = sim_results_small %>% 
-   mutate(
-    reject_H0 = case_when(
-       p.value < 0.05 ~ 1,
-       p.value >=0.05 ~ 0
-     )
-   )
- 
- sim_results_small_edit = sim_results_small_edit %>% 
-   group_by(beta1) %>% 
-   mutate(
-   sum_reject_HO = sum(reject_H0),
-   prop_reject_H0 = sum_reject_HO/length(sum_reject_HO)
-   
-   ) %>% 
-   ungroup()
- 
- prob3_plot = sim_results_small_edit %>%
-   distinct(beta1, prop_reject_H0, sum_reject_HO)
- 
- 
- 
- 
-   ggplot(aes(x = ))
- 
 
 #### large 
- sim_results_large =
+sim_results_large =
   tibble(beta1 = c(1, 2, 3, 4, 5, 6)) %>% 
   mutate(
     output_list = map(.x = beta1, ~rerun(10000, sim_data(beta1 = .x))),
@@ -205,32 +159,58 @@ output1 = rerun(100, sim_data(0)) %>%
   unnest(output_df)
 
 
- sim_results_large_edit = sim_results_large %>% 
-   mutate(
+sim_results_large_edit = sim_results_large %>% 
+  mutate(
     reject_H0 = case_when(
-       p.value < 0.05 ~ 1,
-       p.value >=0.05 ~ 0
-     )
-   )
- 
- sim_results_large_edit = sim_results_large_edit %>% 
-   group_by(beta1) %>% 
-   mutate(
-   sum_reject_HO = sum(reject_H0),
-   prop_reject_H0 = sum_reject_HO/length(sum_reject_HO)
-   
-   ) %>% 
-   ungroup()
- 
- prob3_plot = sim_results_large_edit %>%
-   distinct(beta1, prop_reject_H0, sum_reject_HO)
- 
- prob3_plot %>% 
-ggplot(aes(x = prop_reject_H0, y = beta1)) 
-   
-   
-   
-   
+      p.value < 0.05 ~ 1,
+      p.value >=0.05 ~ 0
+    )
+  )
+
+sim_results_large_edit = sim_results_large_edit %>% 
+  group_by(beta1) %>% 
+  mutate(
+    sum_reject_HO = sum(reject_H0),
+    prop_reject_H0 = sum_reject_HO/length(sum_reject_HO)
+    
+  ) %>% 
+  ungroup()
+
+prob3_plot = sim_results_large_edit %>%
+  distinct(beta1, prop_reject_H0, sum_reject_HO) %>% 
+  mutate(
+    perc_rej_H0 = prop_reject_H0 * 100
+  )
+
+
+prob3_plot %>% 
+  ggplot(aes(x = beta1, y = perc_rej_H0, fill = beta1)) + 
+  geom_bar(stat = "identity") +
+  labs(
+    title = "Reject H0 based on beta 1",
+    x = "Beta 1",
+    y = "% Reject HO")
+
+
+
+prob3_plot2a = sim_results_large_edit %>% 
+  group_by(beta1)
+mutate(
+  avg_beta1_all = mean(beta1)
+) %>% 
+  ungroup() %>% 
+  distinct(beta1, avg_beta1_all)
+
+prob3_plot2b = sim_results_large_edit %>% 
+  filter(reject_H0 == 1) %>% 
+  group_by(beta1) %>% 
+  mutate(
+     avg_beta1_rej = mean(beta1)
+) %>% 
+  ungroup() %>% 
+  distinct(beta1, avg_beta1_rej)
+
+
 ```
 
 
